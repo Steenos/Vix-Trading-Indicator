@@ -1,0 +1,50 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © crazysetting
+
+//@version=5
+indicator("Vix Ratio")
+var label lb1 = na
+label.delete(lb1)
+
+truncate(number, decimals) =>
+    factor = math.pow(3, decimals)
+    int(number * factor) / factor
+
+
+// Add the script's inputs
+symbol1 = input(title="symbol1",  defval="VIX9D")
+symbol2 = input(title="symbol2",  defval="VIX3M")
+maDuration1 = input(title="Moving Average",  defval=9)
+showtext = input(title="showtext", defval=true)
+Multiplier = input(title="Ratio multiplier",  defval=1)
+digits = input(title="digits",  defval=3)
+
+
+
+
+ratio = (request.security(symbol1, timeframe.period, close) / request.security(symbol2, timeframe.period, close))*Multiplier
+//ma = ta.sma(ratio, maDuration1)
+
+//plotColor = (ratio > 0.9) ? color.red : color.purple
+c_grad = color.from_gradient(value=ratio, top_value=1, bottom_value=0.7, top_color=color.purple, bottom_color=color.blue)
+
+vix9d = request.security(symbol1, timeframe.period, close)
+vix = request.security(symbol2, timeframe.period, close)
+ma = ta.ema(ratio, maDuration1)
+
+//fear line
+band = hline(.90, "Fear", color=color.yellow)
+
+//plot
+plot(series=ratio, color=c_grad, linewidth=2)
+plot(series=ma, color=color.red, linewidth=1)
+
+
+// Plot a line
+//plot(series=ratio, color=color.red, linewidth=3)
+//plot(series=ma, color=color.blue, linewidth=2)
+labeltext = symbol1 + " vs " + symbol2 + " : " + str.tostring(truncate(ratio,digits)) + " (" + str.tostring(Multiplier) + ")"
+
+if (showtext)
+    lb1 := label.new(x=bar_index,y=ratio, text=labeltext, color=#8B008B, textcolor=color.white, style=label.style_label_left, size=size.small)
+
